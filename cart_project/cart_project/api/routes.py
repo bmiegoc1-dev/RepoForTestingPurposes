@@ -1,11 +1,12 @@
-from flask import Blueprint, request, jsonify
-from cart import my_cart
+from click import Tuple
+from flask import Blueprint, request, jsonify, Response
+from cart_service.cart import my_cart, CartManager
 from infrastracture.models import db, Product, CartItem
 
 cart_bp = Blueprint('cart', __name__)
 
 @cart_bp.route('/add', methods=['POST'])
-def api_add_item():        ### adding item to the cart table
+def api_add_item() ->tuple[Response, int]:        ### adding item to the cart_item table
 
     #1. Catch the incoming data, entered by user and save it to the variable.
     data = request.get_json()
@@ -14,36 +15,28 @@ def api_add_item():        ### adding item to the cart table
     product_id = int(data.get("product_id"))   # pass it to the variable
     item_quantity = int(data.get("quantity"))
 
-    # Maps the data to our table
-    cart_item_info = CartItem(user_id=user_id, product_id=product_id, quantity=item_quantity)
+    #Calling the right method to perform an action.
+    product_adding = CartManager.add_to_cart(user_id, product_id, item_quantity)
 
-    #Saves the output to the database
-    db.session.add(cart_item_info)
-    db.session.commit()
-
-    name_of_product = Product.query.get(product_id)
-    name_dict ={
-        "name" : name_of_product.name
-    }
 
     # 4. Send back the response to they user. We use jsonify for the machine to understand the language
-    return jsonify({"message": f"Succesfully added {name_dict['name']} x{item_quantity} times to your cart!"}), 201
+    return jsonify({"message": f"Succesfully added {product_adding} x{item_quantity} times to your cart!"}), 201
 
 
 
 @cart_bp.route('/remove', methods=['DELETE'])
 
-def api_remove_item():           ### Removes item from the cart
+def api_remove_item() -> tuple[Response, int]:           ### Removes item from the cart
 
     # 1. Catching the data
     data = request.get_json()
     # 2. Extracting the desired values
-    item_name = data.get("name")
-    item_quantity = data.get("quantity")
+    item_name = str(data.get("name"))
+    item_quantity = int(data.get("quantity"))
     # 3. Triggering the method
     my_cart.remove_item(item_name, item_quantity)
     # 4. Send back the response to the user
-    return jsonify({"message": f"Succesfully removed {item_quantity} pieces of {item_name}! "})
+    return jsonify({"message": f"Succesfully removed {item_quantity} pieces of {item_name}! "}), 204
 
 
 
@@ -52,17 +45,17 @@ def api_remove_item():           ### Removes item from the cart
 
 
 @cart_bp.route('/total', methods=['GET'])
-def api_get_total():          #### Total cart value
-    current_price = my_cart.get_total()
+def api_get_total() -> Response:          #### Total cart value
+    current_price = int(my_cart.get_total())
     return jsonify({"Current cart value is:": current_price})
 
 
 @cart_bp.route('/store', methods=['POST'])    # Adding an item to the catalog
-def api_store_item():
+def api_store_item() -> tuple[Response, int]:
     data = request.get_json()
-    item_name = data.get("name")
-    item_price = data.get("price")
-    item_quantity = data.get("quantity")
+    item_name = str(data.get("name"))
+    item_price = int(data.get("price"))
+    item_quantity = int(data.get("quantity"))
     product_info = Product(name=item_name, price=item_price, quantity=item_quantity)
     db.session.add(product_info)
     db.session.commit()
@@ -73,7 +66,7 @@ def api_store_item():
 
 
 @cart_bp.route('/catalog', methods=['GET'])
-def api_get_catalog():
+def api_get_catalog() -> tuple[Response,int]:
     whole_catalog = Product.query.all()     #querying through our table
 
     json_ready_catalog = []    # empty dict for translating purposes
@@ -91,10 +84,10 @@ def api_get_catalog():
     return  jsonify(json_ready_catalog), 200  # Returns translated dict in json format
 
 @cart_bp.route('/catalog/<int:id>', methods =['GET'])
-def api_get_id_product(id):
+def api_get_id_product(id) ->tuple[Response, int]:
 
     single_product = Product.query.get(id)   # Queries for only one product
-    id_product = single_product.id
+    id_product = int(single_product.id)
 
     single_dict = {
         "id": single_product.id,
