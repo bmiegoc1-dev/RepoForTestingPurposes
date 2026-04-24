@@ -1,38 +1,72 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import Mapped, mapped_column
+from decimal import Decimal
+from sqlalchemy import String, Integer, Numeric, ForeignKey, DateTime
+from typing import Any
+
 
 db = SQLAlchemy()
 
 
 
 class Users(db.Model):
-    # 1. The primary Key column, ID.
-    id = db.Column(db.Integer, nullable=False, primary_key=True)
 
-    # 2. Username column
-    username = db.Column(db.String(80), nullable=False, unique=True)
+    __tablename__ = "users"
 
-    # 3. Password column
-    password = db.Column(db.String(50), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    username: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+
+    password: Mapped[str] = mapped_column(String(50), nullable=False)
+
+
+    
 
 
 class CartItem(db.Model):
-    # 1 id column
-    id = db.Column(db.Integer,
-                   primary_key=True)  # there's no need to write nullable=false. When there is primary key, sql use nullable=false by default
-    # 2 quantity column
-    quantity = db.Column(db.Integer, nullable=False)
-    # 3 product_id column
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    # 4 user_id column
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    __tablename__ = 'cart_item'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+
+    product_id: Mapped[int] = mapped_column(ForeignKey('product.id'), nullable=False)
+
+    quantity: Mapped[int] = mapped_column(nullable=False)
+
+
+
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> 'CartItem':
+        clean_data = data.copy()
+        if clean_data.get("user_id"):  # using get here prevents from crashing when user won't send this data. KeyError
+            clean_data["user_id"] = int(clean_data["user_id"])
+
+        if clean_data.get("product_id"):
+            clean_data["product_id"] = int(clean_data["product_id"])
+
+        if clean_data.get("quantity"):
+            clean_data["quantity"] = int(clean_data["quantity"])
+
+        return cls(**{k : v for k,v in clean_data.items() if k in cls.__annotations__})
+
 
 
 class Product(db.Model):
-    # 1. id column
-    id = db.Column(db.Integer, primary_key=True)
-    # 2. name column
-    name = db.Column(db.String(50), nullable=False)
-    # 3. price column
-    price = db.Column(db.Numeric(10, 2), nullable=False)
-    # 4. quantity column
-    quantity = db.Column(db.Integer, nullable=False)
+
+    __tablename__ = 'product'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    price: Mapped[Decimal] = mapped_column(Numeric(10,2), nullable=False)
+
+    quantity: Mapped[int] = mapped_column(nullable=False)
+
+
+
+########   DTO SECTION
+

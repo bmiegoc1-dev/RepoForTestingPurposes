@@ -10,13 +10,15 @@ def api_add_item() ->tuple[Response, int]:        ### adding item to the cart_it
 
     #1. Catch the incoming data, entered by user and save it to the variable.
     data = request.get_json()
-    # 2. Extract values from dictionary for easier managing.
-    user_id= int(data.get("user_id"))
-    product_id = int(data.get("product_id"))   # pass it to the variable
-    item_quantity = int(data.get("quantity"))
+
+    #Using DTO to handle the incoming data Extraction
+    new_cart_item = CartItem.from_dict(data)
+
+
+    my_cart_manager = CartManager()  # Class instance object
 
     #Calling the right method to perform an action.
-    product_adding = CartManager.add_to_cart(user_id, product_id, item_quantity)
+    product_adding = my_cart_manager.add_to_cart(user_id, product_id, item_quantity)
 
 
     # 4. Send back the response to they user. We use jsonify for the machine to understand the language

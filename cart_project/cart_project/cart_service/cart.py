@@ -32,20 +32,19 @@ my_cart = ShoppingCart()
 
 
 class CartManager:
-    @staticmethod
-    def add_to_cart(user_id: int, product_id: int, quantity: int)  -> str:
-        #Searching for exisitng item in database
-        existing_item = CartItem.query.filter_by(user_id=user_id, product_id=product_id).first()
+
+    def add_to_cart(self, item : CartItem)  -> str:  # Passing the CartItem object (created with from_dict method) as the parameter
+        #Searching for existing item in database
+        existing_item = CartItem.query.filter_by(user_id=item.user_id, product_id=item.product_id).first()
         if existing_item: # if true - increase quantity
-            existing_item.quantity += quantity
+            existing_item.quantity += item.quantity
         else: # else - create a new row with item
-            new_item = CartItem(user_id=user_id, product_id=product_id, quantity=quantity)
-            db.session.add(new_item)
+            db.session.add(item)
         # Save changes
         db.session.commit()
         # Looking for a product name for handling response  and sending it back to the route.
-        product_name = Product.query.get(product_id)
-        return product_name.name
+        product_name = Product.query.get(item.product_id)
+        return product_name.name  # functions return the product name.
 
 
 
