@@ -6,7 +6,7 @@ from infrastracture.models import db, Product, CartItem
 cart_bp = Blueprint('cart', __name__)
 
 @cart_bp.route('/add', methods=['POST'])
-def api_add_item() ->tuple[Response, int]:        ### adding item to the cart_item table
+def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart_item table
 
     #1. Catch the incoming data, entered by user and save it to the variable.
     data = request.get_json()
@@ -18,11 +18,11 @@ def api_add_item() ->tuple[Response, int]:        ### adding item to the cart_it
     my_cart_manager = CartManager()  # Class instance object
 
     #Calling the right method to perform an action.
-    product_adding = my_cart_manager.add_to_cart(user_id, product_id, item_quantity)
+    product_adding = my_cart_manager.add_to_cart(new_cart_item)
 
 
     # 4. Send back the response to they user. We use jsonify for the machine to understand the language
-    return jsonify({"message": f"Succesfully added {product_adding} x{item_quantity} times to your cart!"}), 201
+    return jsonify({"message": f"Succesfully added {product_adding} x{new_cart_item.quantity} times to your cart!"}), 201
 
 
 
