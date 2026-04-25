@@ -44,6 +44,8 @@ class CartManager:
         db.session.commit()
         # Looking for a product name for handling response  and sending it back to the route.
         product_name = Product.query.get(item.product_id)
+        if not product_name:
+            return "Not found"
         return product_name.name  # functions return the product name.
 
 

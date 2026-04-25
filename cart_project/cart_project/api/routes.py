@@ -11,8 +11,15 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
     #1. Catch the incoming data, entered by user and save it to the variable.
     data = request.get_json()
 
-    #Using DTO to handle the incoming data Extraction
-    new_cart_item = CartItem.from_dict(data)
+    try:  # Using try to test the code for errors, like value error etc.
+        #Using DTO to handle the incoming data Extraction
+        new_cart_item = CartItem.from_dict(data)
+    except ValueError:  # If any data is not required type and it produces ValueError, return this response to the user.
+        return jsonify({
+            "Error:": "Bad request",
+            "Message:" : "Invalid data type. Parameters must be numbers."
+        }), 400
+
 
 
     my_cart_manager = CartManager()  # Class instance object
@@ -20,6 +27,11 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
     #Calling the right method to perform an action.
     product_adding = my_cart_manager.add_to_cart(new_cart_item)
 
+    if product_adding == "Not found":
+        return jsonify({
+            "Error:" : "Data not found",
+            "Possible reasons:" : "Product ID does not exist"
+        }), 404
 
     # 4. Send back the response to they user. We use jsonify for the machine to understand the language
     return jsonify({"message": f"Succesfully added {product_adding} x{new_cart_item.quantity} times to your cart!"}), 201
