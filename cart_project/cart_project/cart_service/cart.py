@@ -1,5 +1,6 @@
-from infrastracture.models import db, Product, CartItem
+from infrastracture.models import db, Product, CartItem, Users
 
+'''''
 class ShoppingCart:
     def __init__(self):
         # Stores items as {item_name: {"price": float, "quantity": int}}
@@ -26,6 +27,7 @@ class ShoppingCart:
 
 my_cart = ShoppingCart()
 
+'''''
 
 
 # Class to look for duplicated object inside cart to prevent from creating new rows
@@ -33,7 +35,15 @@ my_cart = ShoppingCart()
 
 class CartManager:
 
-    def add_to_cart(self, item : CartItem)  -> str:  # Passing the CartItem object (created with from_dict method) as the parameter
+    def add_to_cart(self, item : CartItem)  -> str:  # Passing the CartItem object (created with from_dict method) as
+        # the parameter
+
+        # Looking for a product name, if the user is trying to add the product that doesn't exist in the inventory,
+        # it will throw a response.
+        product_name = Product.query.get(item.product_id)
+        if not product_name:
+            return "Not found"
+
         #Searching for existing item in database
         existing_item = CartItem.query.filter_by(user_id=item.user_id, product_id=item.product_id).first()
         if existing_item: # if true - increase quantity
@@ -42,11 +52,51 @@ class CartManager:
             db.session.add(item)
         # Save changes
         db.session.commit()
-        # Looking for a product name for handling response  and sending it back to the route.
-        product_name = Product.query.get(item.product_id)
-        if not product_name:
-            return "Not found"
+
         return product_name.name  # functions return the product name.
+
+
+
+    def remove_from_cart(self, item: CartItem) -> str:
+        # Looks for existing item in database
+        existing_item = CartItem.query.filter_by(user_id=item.user_id, product_id=item.product_id).first()
+        if not existing_item:
+            return "Not found"
+
+        existing_item.quantity -= item.quantity
+        if existing_item.quantity <= 0:  # after subtracting quantity, if it goes down to zero, remove whole item
+            # from the cart
+            db.session.delete(existing_item)
+
+        db.session.commit()
+
+        # # Looking for a product name for handling response  and sending it back to the route.
+        product_name = Product.query.get(item.product_id)
+
+        return product_name.name  # Function returns product name
+
+
+    def get_total(self, user_id: int) -> float:  # It takes
+
+        existing_user = Users.query.get(user_id)  # Checking if the entered user_id exist
+
+        if existing_user is None: # If it doesn't - raise valueError
+            raise ValueError("The user_id does not exist")
+
+        items_of_user = CartItem.query.filter_by(user_id=user_id).all()   #filtering for all results of given user_id
+
+        total = 0  # counter
+        for item in items_of_user:   # Iterates through the filtered user items
+            product_price = Product.query.get(item.product_id)   # Grabs the price of product
+            total += item.quantity * product_price.price  # Calculating the total and adding it to the counter
+
+        return total
+
+
+
+
+
+
 
 
 

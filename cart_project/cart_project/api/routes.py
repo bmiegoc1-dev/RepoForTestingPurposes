@@ -16,8 +16,8 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
         new_cart_item = CartItem.from_dict(data)
     except ValueError:  # If any data is not required type and it produces ValueError, return this response to the user.
         return jsonify({
-            "Error:": "Bad request",
-            "Message:" : "Invalid data type. Parameters must be numbers."
+            "Error": "Bad request",
+            "Message" : "Invalid data type. Parameters must be numbers."
         }), 400
 
 
@@ -25,32 +25,48 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
     my_cart_manager = CartManager()  # Class instance object
 
     #Calling the right method to perform an action.
-    product_adding = my_cart_manager.add_to_cart(new_cart_item)
+    product_to_add = my_cart_manager.add_to_cart(new_cart_item)
 
-    if product_adding == "Not found":
+    if product_to_add == "Not found":
         return jsonify({
-            "Error:" : "Data not found",
-            "Possible reasons:" : "Product ID does not exist"
+            "Error" : "Data not found",
+            "Possible reasons" : "Product ID does not exist"
         }), 404
 
-    # 4. Send back the response to they user. We use jsonify for the machine to understand the language
-    return jsonify({"message": f"Succesfully added {product_adding} x{new_cart_item.quantity} times to your cart!"}), 201
+    # 4. Send back the response to the user
+    return jsonify({"message": f"Succesfully added {product_to_add} x{new_cart_item.quantity} times to your cart!"}), 201
 
 
 
 @cart_bp.route('/remove', methods=['DELETE'])
 
-def api_remove_item() -> tuple[Response, int]:           ### Removes item from the cart
+def api_remove_from_cart() -> tuple[Response, int]:           ### Removes item from the cart
 
-    # 1. Catching the data
     data = request.get_json()
-    # 2. Extracting the desired values
-    item_name = str(data.get("name"))
-    item_quantity = int(data.get("quantity"))
-    # 3. Triggering the method
-    my_cart.remove_item(item_name, item_quantity)
+
+    try:
+        item_to_remove = CartItem.from_dict(data)  # ## Adding the method to clean incoming data. Variable holds the
+                                                    # data entered by the user
+    except ValueError:
+        return jsonify({
+            "error" : "bad request",
+            "message": "Invalid data type. Parameters must be numbers."
+        }), 400
+
+    my_cart_manager = CartManager()  # Class instance object
+
+    # Calling the method to perform an action
+
+    item_removing = my_cart_manager.remove_from_cart(item_to_remove)  # Contains return statement
+
+    if item_removing == "Not found":  # handling the not found error
+        return jsonify({
+            "error": "data not found",
+            "possible_reasons": "product id does not exist"
+        }), 404
+
     # 4. Send back the response to the user
-    return jsonify({"message": f"Succesfully removed {item_quantity} pieces of {item_name}! "}), 204
+    return jsonify({"message": f"Succesfully removed x{item_to_remove.quantity}  {item_removing}! "}), 200
 
 
 
@@ -58,10 +74,20 @@ def api_remove_item() -> tuple[Response, int]:           ### Removes item from t
 
 
 
-@cart_bp.route('/total', methods=['GET'])
-def api_get_total() -> Response:          #### Total cart value
-    current_price = int(my_cart.get_total())
-    return jsonify({"Current cart value is:": current_price})
+@cart_bp.route('/total/<int:user_id>', methods=['GET'])
+def api_get_total(user_id : int) -> tuple[Response, int]:       #### Total cart value
+    my_cart_manager = CartManager()
+
+    try:
+        current_price = my_cart_manager.get_total(user_id)
+    except ValueError:
+        return jsonify({
+            "error": "data not found",
+            "possible_reasons": "user id does not exist"
+        }), 404
+
+
+    return jsonify({"current_cart_value": current_price}), 200
 
 
 @cart_bp.route('/store', methods=['POST'])    # Adding an item to the catalog
