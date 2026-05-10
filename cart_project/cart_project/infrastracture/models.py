@@ -35,6 +35,8 @@ class CartItem(db.Model):
 
     quantity: Mapped[int] = mapped_column(nullable=False)
 
+    product = db.relationship('Product')
+
 
 
 
@@ -52,6 +54,18 @@ class CartItem(db.Model):
 
         return cls(**{k : v for k,v in clean_data.items() if k in cls.__annotations__})
 
+    def to_dict(self) -> dict:  # Method that creates a dictionary with desired data to display for the user
+
+        cart_dictionary = {   # What I need here is username, name of the product, quantity, and total value of the product
+            "product_name" : self.product.name,
+            "price": self.product.price,
+            "quantity" : self.quantity,
+            "total": self.product.price * self.quantity
+
+        }
+
+        return cart_dictionary
+
 
 
 class Product(db.Model):
@@ -65,6 +79,50 @@ class Product(db.Model):
     price: Mapped[Decimal] = mapped_column(Numeric(10,2), nullable=False)
 
     quantity: Mapped[int] = mapped_column(nullable=False)
+
+
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> 'Product':
+
+        clean_data = data.copy()
+
+        if clean_data.get("name"):
+            clean_data["name"] = str(clean_data["name"])
+        if clean_data.get("price"):
+            clean_data["price"] = int(clean_data["price"])
+        if clean_data.get("quantity"):
+            clean_data["quantity"] = int(clean_data["quantity"])
+
+        return cls(**{k : v for k,v in clean_data.items() if k in cls.__annotations__})
+
+
+
+    def to_dict(self) -> dict:
+
+        product_dictionary = {
+            "name": self.name,
+            "price": self.price,
+            "quantity": self.quantity
+        }
+
+        return product_dictionary
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

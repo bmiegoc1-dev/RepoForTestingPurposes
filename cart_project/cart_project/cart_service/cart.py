@@ -76,7 +76,7 @@ class CartManager:
         return product_name.name  # Function returns product name
 
 
-    def get_total(self, user_id: int) -> float:  # It takes
+    def get_total(self, user_id: int) -> float:
 
         existing_user = Users.query.get(user_id)  # Checking if the entered user_id exist
 
@@ -91,6 +91,74 @@ class CartManager:
             total += item.quantity * product_price.price  # Calculating the total and adding it to the counter
 
         return total
+
+    def get_cart(self, user_id: int) -> dict:
+
+        items_of_user = CartItem.query.filter_by(user_id=user_id).all()
+        user_object = Users.query.get(user_id)
+        username = user_object.username # Grabs the username for better layout at the end.
+
+
+        if not items_of_user:   # If the user_id cannot be found, return this message
+            return {
+                "not_found": "The cart is empty or the user_id does not exist."
+            }
+
+
+        formatted_cart = [  # Formatting cart to dictionary.
+            i.to_dict() for i in items_of_user
+        ]
+
+        cart_total = 0
+
+        for item in formatted_cart:
+            cart_total += item["total"] #Looks for a total for each item in our formatted cart and adds this value to our cart_total which is a full cart total value
+
+        return {
+            "cart_owner": username,
+            "items": formatted_cart,  # Formatted list of dictionaries
+            "total_value": cart_total
+        }
+
+
+
+
+class StoreManager:  # Class responsible for Store managing.
+
+    def add_to_store(self, item: Product) -> str:  # I passed the fully built Product object, that has been created with
+                                                    # from_dict method.
+
+        existing_item = Product.query.filter_by(name=item.name).first()   #Checking if the product we are trying to add already exists
+        if existing_item:  # if it is - increase  a quantity
+            existing_item.quantity += item.quantity
+        else:
+            db.session.add(item) # Adding the item to the product table
+
+        db.session.commit()
+
+        return item.name  # method returns the item name.
+
+
+
+    def get_catalog(self) -> list[dict]:
+
+        whole_catalog = Product.query.all()
+
+        formatted_catalog = [
+            i.to_dict() for i in whole_catalog
+        ]
+
+
+
+
+        return formatted_catalog
+
+
+
+
+
+
+#######################################
 
 
 

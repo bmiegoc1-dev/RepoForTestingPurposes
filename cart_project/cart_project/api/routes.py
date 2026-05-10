@@ -1,6 +1,6 @@
 from click import Tuple
 from flask import Blueprint, request, jsonify, Response
-from cart_service.cart import my_cart, CartManager
+from cart_service.cart import CartManager, StoreManager
 from infrastracture.models import db, Product, CartItem
 
 cart_bp = Blueprint('cart', __name__)
@@ -90,54 +90,56 @@ def api_get_total(user_id : int) -> tuple[Response, int]:       #### Total cart 
     return jsonify({"current_cart_value": current_price}), 200
 
 
-@cart_bp.route('/store', methods=['POST'])    # Adding an item to the catalog
+@cart_bp.route('/add_store', methods=['POST'])    # Adding an item to the catalog
 def api_store_item() -> tuple[Response, int]:
     data = request.get_json()
-    item_name = str(data.get("name"))
-    item_price = int(data.get("price"))
-    item_quantity = int(data.get("quantity"))
-    product_info = Product(name=item_name, price=item_price, quantity=item_quantity)
-    db.session.add(product_info)
-    db.session.commit()
 
-    # Is it necessary here?  all_products= Product.query.all()
+    try:
+        new_store_item = Product.from_dict(data)    # using the from_dict method to clean incoming data
+    except ValueError:  # In case of invalid data entered while trying to add an item, produce ValueError
+        return jsonify({
+            "error": "bad request",
+            "possible_reasons": "Invalid data type"
+        }), 400
 
-    return jsonify({"message:": f"Successfully added {item_name} x{item_quantity} to the catalog"}), 201
+    my_store_manager = StoreManager()
+
+    item_to_add = my_store_manager.add_to_store(new_store_item)
+
+
+    return jsonify({"message": f"Successfully added {item_to_add} x {new_store_item.quantity} times to the catalog"}), 201
+
+
+
+
 
 
 @cart_bp.route('/catalog', methods=['GET'])
 def api_get_catalog() -> tuple[Response,int]:
-    whole_catalog = Product.query.all()     #querying through our table
 
-    json_ready_catalog = []    # empty dict for translating purposes
+    my_store_manager = StoreManager()
 
-    for i in whole_catalog:   # loop iterating through our query
+    current_catalog = my_store_manager.get_catalog()
 
-        i_dict = {             # Attaches result to specific data
-            "name" : i.name,
-            "price" : i.price,
-            "quantity" : i.quantity
-        }
+    return jsonify({"catalog": current_catalog}), 200
 
-        json_ready_catalog.append(i_dict)  # Adds sorted results to empty dict
 
-    return  jsonify(json_ready_catalog), 200  # Returns translated dict in json format
 
-@cart_bp.route('/catalog/<int:id>', methods =['GET'])
-def api_get_id_product(id) ->tuple[Response, int]:
 
-    single_product = Product.query.get(id)   # Queries for only one product
-    id_product = int(single_product.id)
 
-    single_dict = {
-        "id": single_product.id,
-        "name": single_product.name,
-        "price": single_product.price,
-        "quantity": single_product.quantity
 
-    }
+@cart_bp.route('/get_cart/<int:user_id>', methods=['GET'])
+def api_get_cart(user_id : int)  -> tuple[Response, int]:
 
-    return jsonify({"Your product:": single_dict}),200
+    my_cart_manager = CartManager()
+
+    user_cart = my_cart_manager.get_cart(user_id)
+
+    if "not_found" in user_cart:  # Extracting the error mesage from get_cart method.
+        return jsonify(user_cart), 404
+
+
+    return jsonify(user_cart), 200
 
 
 
@@ -148,8 +150,8 @@ def api_get_id_product(id) ->tuple[Response, int]:
 
 
 
-#TODO recreate another endpoints
-#TODO adding http code responses in case of errors
-#TODO Dominik's tasks
+
+
+#TODO
 
 
