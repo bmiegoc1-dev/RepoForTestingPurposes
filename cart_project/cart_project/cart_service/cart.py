@@ -56,14 +56,14 @@ class CartManager:
 
         total = 0  # counter
         for item in items_of_user:   # Iterates through the filtered user items
-            product_price = Product.query.get(item.product_id)   # Grabs the price of product
+            product_price = db.session.get(Product, item.product_id)   # Grabs the price of product
             total += item.quantity * product_price.price  # Calculating the total and adding it to the counter
 
         return total
 
     def get_cart(self, user_id: int) -> dict:
 
-        user_object = Users.query.get(user_id)
+        user_object = db.session.get(Users, user_id)
 
         if user_object is None:  # Checks if user does exist
             return {"not_found": "User does not exist"}
@@ -133,7 +133,6 @@ class StoreManager:  # Class responsible for Store managing.
 
 
 
-#######################################
 
 
 

@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column
 from decimal import Decimal
-from sqlalchemy import String, Integer, Numeric, ForeignKey, DateTime
+from sqlalchemy import String, Numeric, ForeignKey
 from typing import Any
 
 

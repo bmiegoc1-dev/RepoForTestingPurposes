@@ -6,11 +6,12 @@ from dotenv import load_dotenv
 
 
 
+#Loading environmental  variables to the file
+load_dotenv()
+
 # Creating the app
 app = Flask(__name__)
 
-#Loading environmental  variables to the file
-load_dotenv()
 # Providing a db connection address for our app
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 

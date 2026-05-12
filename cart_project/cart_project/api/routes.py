@@ -15,8 +15,8 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
         new_cart_item = CartItem.from_dict(data)
     except ValueError:  # If any data is not required type and it produces ValueError, return this response to the user.
         return jsonify({
-            "Error": "Bad request",
-            "Message" : "Invalid data type. Parameters must be numbers."
+            "error": "bad request",
+            "message" : "invalid data type. Parameters must be numbers."
         }), 400
 
 
@@ -28,12 +28,12 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
 
     if product_to_add == "Not found":
         return jsonify({
-            "Error" : "Data not found",
-            "Possible reasons" : "Product ID does not exist"
+            "error" : "data not found",
+            "possible_reasons" : "product ID does not exist"
         }), 404
 
     # 4. Send back the response to the user
-    return jsonify({"message": f"Succesfully added {product_to_add} x{new_cart_item.quantity} times to your cart!"}), 201
+    return jsonify({"message": f"Successfully added {product_to_add} x{new_cart_item.quantity} times to your cart!"}), 201
 
 
 
@@ -49,10 +49,10 @@ def api_remove_from_cart() -> tuple[Response, int]:           ### Removes item f
     except ValueError:
         return jsonify({
             "error" : "bad request",
-            "message": "Invalid data type. Parameters must be numbers."
+            "message": "invalid data type, parameters must be numbers."
         }), 400
 
-    my_cart_manager = CartManager()  # Class instance object
+    my_cart_manager = CartManager()
 
     # Calling the method to perform an action
 
@@ -65,7 +65,7 @@ def api_remove_from_cart() -> tuple[Response, int]:           ### Removes item f
         }), 404
 
     # 4. Send back the response to the user
-    return jsonify({"message": f"Succesfully removed x{item_to_remove.quantity}  {item_removing}! "}), 200
+    return jsonify({"message": f"Successfully removed x{item_to_remove.quantity}  {item_removing}! "}), 200
 
 
 
@@ -98,7 +98,7 @@ def api_store_item() -> tuple[Response, int]:
     except ValueError:  # In case of invalid data entered while trying to add an item, produce ValueError
         return jsonify({
             "error": "bad request",
-            "possible_reasons": "Invalid data type"
+            "possible_reasons": "invalid data type"
         }), 400
 
     my_store_manager = StoreManager()
@@ -151,6 +151,5 @@ def api_get_cart(user_id : int)  -> tuple[Response, int]:
 
 
 
-#TODO
 
 
