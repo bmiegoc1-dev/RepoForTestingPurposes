@@ -24,4 +24,4 @@ app.register_blueprint(cart_bp)
 
 # Server setup
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')

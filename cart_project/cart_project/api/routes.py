@@ -65,7 +65,7 @@ def api_remove_from_cart() -> tuple[Response, int]:  # Removes item from the car
         }), 404
 
     # 4. Send back the response to the user
-    return jsonify({"message": f"Successfully removed x{item_to_remove.quantity}  {item_removing}! "}), 200
+    return jsonify({"message": f"Successfully removed x{item_to_remove.quantity} {item_removing}! "}), 200
 
 
 
@@ -134,7 +134,7 @@ def api_get_cart(user_id : int)  -> tuple[Response, int]:
 
     user_cart = my_cart_manager.get_cart(user_id)
 
-    if "not_found" in user_cart:  # Extracting the error mesage from get_cart method.
+    if "not_found" in user_cart:  # Extracting the error message from get_cart method.
         return jsonify(user_cart), 404
 
 
