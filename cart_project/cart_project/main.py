@@ -18,7 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 # Starting the SQLAlchemy manager - initialize the database from another file
 db.init_app(app)
 
-#Initializing the endpoints from routes with blueprint
+# Initializing the endpoints from routes with blueprint
 app.register_blueprint(cart_bp)
 
 
