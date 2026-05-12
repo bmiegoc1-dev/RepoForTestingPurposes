@@ -100,8 +100,7 @@ class CartManager:
 
 class StoreManager:  # Class responsible for Store managing.
 
-    def add_to_store(self, item: Product) -> str:  # I passed the fully built Product object, that has been created with
-                                                    # from_dict method.
+    def add_to_store(self, item: Product) -> str:  # I passed the fully built Product object, that has been created with from_dict method.
 
         existing_item = Product.query.filter_by(name=item.name).first()   #Checking if the product we are trying to add already exists
         if existing_item:  # if it is - increase  a quantity
