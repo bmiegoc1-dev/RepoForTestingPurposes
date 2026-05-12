@@ -1,36 +1,4 @@
-from infrastracture.models import db, Product, CartItem, Users
-
-'''''
-class ShoppingCart:
-    def __init__(self):
-        # Stores items as {item_name: {"price": float, "quantity": int}}
-        self.items = {}
-
-    def add_item(self, name :str, price :int, quantity=1):           #### cola. 10$, 3
-        if name in self.items:
-            self.items[name]["quantity"] += quantity
-        else:
-            self.items[name] = {"price": price, "quantity": quantity}
-
-    def remove_item(self, name, quantity=1):
-        if name in self.items:
-            self.items[name]["quantity"] -= quantity
-            if self.items[name]["quantity"] <= 0:
-                del self.items[name]
-
-    def get_total(self) -> int:
-        total = 0
-        for item in self.items.values():
-            total += item["price"] * item["quantity"]
-        return total
-
-
-my_cart = ShoppingCart()
-
-'''''
-
-
-# Class to look for duplicated object inside cart to prevent from creating new rows
+from infrastructure.models import db, Product, CartItem, Users
 
 
 class CartManager:
@@ -40,7 +8,7 @@ class CartManager:
 
         # Looking for a product name, if the user is trying to add the product that doesn't exist in the inventory,
         # it will throw a response.
-        product_name = Product.query.get(item.product_id)
+        product_name = db.session.get(Product, item.product_id)
         if not product_name:
             return "Not found"
 
@@ -71,14 +39,15 @@ class CartManager:
         db.session.commit()
 
         # # Looking for a product name for handling response  and sending it back to the route.
-        product_name = Product.query.get(item.product_id)
+        product_name = db.session.get(Product, item.product_id)
 
         return product_name.name  # Function returns product name
 
 
     def get_total(self, user_id: int) -> float:
 
-        existing_user = Users.query.get(user_id)  # Checking if the entered user_id exist
+
+        existing_user = db.session.get(Users, user_id) # Checking if the entered user_id exist
 
         if existing_user is None: # If it doesn't - raise valueError
             raise ValueError("The user_id does not exist")
@@ -94,15 +63,21 @@ class CartManager:
 
     def get_cart(self, user_id: int) -> dict:
 
-        items_of_user = CartItem.query.filter_by(user_id=user_id).all()
         user_object = Users.query.get(user_id)
-        username = user_object.username # Grabs the username for better layout at the end.
+
+        if user_object is None:  # Checks if user does exist
+            return {"not_found": "User does not exist"}
+
+        items_of_user = CartItem.query.filter_by(user_id=user_id).all()
 
 
-        if not items_of_user:   # If the user_id cannot be found, return this message
+
+        if not items_of_user:   # If it's true and the code comes to this point, the user's cart must be empty
             return {
-                "not_found": "The cart is empty or the user_id does not exist."
+                "not_found": "This user's cart is empty"
             }
+
+        username = user_object.username # Grabs the username for better layout at the end.
 
 
         formatted_cart = [  # Formatting cart to dictionary.

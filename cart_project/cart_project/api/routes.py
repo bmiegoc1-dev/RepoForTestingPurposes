@@ -1,7 +1,6 @@
-from click import Tuple
 from flask import Blueprint, request, jsonify, Response
 from cart_service.cart import CartManager, StoreManager
-from infrastracture.models import db, Product, CartItem
+from infrastructure.models import db, Product, CartItem
 
 cart_bp = Blueprint('cart', __name__)
 
@@ -22,7 +21,7 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
 
 
 
-    my_cart_manager = CartManager()  # Class instance object
+    my_cart_manager = CartManager()
 
     #Calling the right method to perform an action.
     product_to_add = my_cart_manager.add_to_cart(new_cart_item)
