@@ -5,7 +5,7 @@ from infrastructure.models import db, Product, CartItem
 cart_bp = Blueprint('cart', __name__)
 
 @cart_bp.route('/add', methods=['POST'])
-def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart_item table
+def api_add_to_cart() ->tuple[Response, int]:  # adding item to the cart_item table
 
     #1. Catch the incoming data, entered by user and save it to the variable.
     data = request.get_json()
@@ -23,7 +23,7 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
 
     my_cart_manager = CartManager()
 
-    #Calling the right method to perform an action.
+    # Calling the right method to perform an action.
     product_to_add = my_cart_manager.add_to_cart(new_cart_item)
 
     if product_to_add == "Not found":
@@ -39,13 +39,13 @@ def api_add_to_cart() ->tuple[Response, int]:        ### adding item to the cart
 
 @cart_bp.route('/remove', methods=['DELETE'])
 
-def api_remove_from_cart() -> tuple[Response, int]:           ### Removes item from the cart
+def api_remove_from_cart() -> tuple[Response, int]:  # Removes item from the cart
 
     data = request.get_json()
 
     try:
-        item_to_remove = CartItem.from_dict(data)  # ## Adding the method to clean incoming data. Variable holds the
-                                                    # data entered by the user
+        item_to_remove = CartItem.from_dict(data)  #Adding the method to clean incoming data. Variable holds the data entered by the user
+
     except ValueError:
         return jsonify({
             "error" : "bad request",
