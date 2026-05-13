@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify, Response
 from cart_service.cart import CartManager, StoreManager
 from infrastructure.models import db, Product, CartItem
+from exceptions.exceptions import UserNotFoundError, CartEmptyError, ProductNotFoundError
+
 
 cart_bp = Blueprint('cart', __name__)
 
@@ -15,22 +17,18 @@ def api_add_to_cart() ->tuple[Response, int]:  # adding item to the cart_item ta
         new_cart_item = CartItem.from_dict(data)
     except ValueError:  # If any data is not required type and it produces ValueError, return this response to the user.
         return jsonify({
-            "error": "bad request",
-            "message" : "invalid data type. Parameters must be numbers."
-        }), 400
+            "error": "Invalid data types"}), 400
 
 
 
     my_cart_manager = CartManager()
 
-    # Calling the right method to perform an action.
-    product_to_add = my_cart_manager.add_to_cart(new_cart_item)
+    try:
+        # Calling the right method to perform an action.
+        product_to_add = my_cart_manager.add_to_cart(new_cart_item)
 
-    if product_to_add == "Not found":
-        return jsonify({
-            "error" : "data not found",
-            "possible_reasons" : "product ID does not exist"
-        }), 404
+    except ProductNotFoundError:
+        return jsonify({"error": "Product does not exist"}), 404
 
     # 4. Send back the response to the user
     return jsonify({"message": f"Successfully added {product_to_add} x{new_cart_item.quantity} times to your cart!"}), 201
@@ -48,21 +46,17 @@ def api_remove_from_cart() -> tuple[Response, int]:  # Removes item from the car
 
     except ValueError:
         return jsonify({
-            "error" : "bad request",
-            "message": "invalid data type, parameters must be numbers."
-        }), 400
+            "error" : "invalid data types"}), 400
 
     my_cart_manager = CartManager()
 
     # Calling the method to perform an action
 
-    item_removing = my_cart_manager.remove_from_cart(item_to_remove)  # Contains return statement
+    try:
+        item_removing = my_cart_manager.remove_from_cart(item_to_remove)  # Contains return statement
 
-    if item_removing == "Not found":  # handling the not found error
-        return jsonify({
-            "error": "data not found",
-            "possible_reasons": "product id does not exist"
-        }), 404
+    except ProductNotFoundError:
+        return jsonify({"error": "Product not found in cart"}), 404
 
     # 4. Send back the response to the user
     return jsonify({"message": f"Successfully removed x{item_to_remove.quantity} {item_removing}! "}), 200
@@ -79,11 +73,9 @@ def api_get_total(user_id : int) -> tuple[Response, int]:       #### Total cart 
 
     try:
         current_price = my_cart_manager.get_total(user_id)
-    except ValueError:
-        return jsonify({
-            "error": "data not found",
-            "possible_reasons": "user id does not exist"
-        }), 404
+    except UserNotFoundError:
+        return jsonify({"error": "User does not exist"}), 404
+
 
 
     return jsonify({"current_cart_value": current_price}), 200
@@ -132,11 +124,12 @@ def api_get_cart(user_id : int)  -> tuple[Response, int]:
 
     my_cart_manager = CartManager()
 
-    user_cart = my_cart_manager.get_cart(user_id)
-
-    if "not_found" in user_cart:  # Extracting the error message from get_cart method.
-        return jsonify(user_cart), 404
-
+    try:
+        user_cart = my_cart_manager.get_cart(user_id)
+    except UserNotFoundError:
+        return jsonify({"error": "User does not exist"}), 404
+    except CartEmptyError:
+        return jsonify({"error": "This user's cart is empty"}), 404
 
     return jsonify(user_cart), 200
 
