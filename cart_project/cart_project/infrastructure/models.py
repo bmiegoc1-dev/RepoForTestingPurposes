@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from sqlalchemy import String, Numeric, ForeignKey
 from typing import Any
 
@@ -48,14 +48,16 @@ class CartItem(db.Model):
         missing = cls.REQUIRED_FIELDS - clean_data.keys()  # Compares fields typed by the user with required.
         if missing:  # If condition is true (any fields remained after subtraction) raise ValueError
             raise ValueError(f"Missing required fields: {missing}")
-        if clean_data.get("user_id"):
+        if "user_id" in clean_data:
             clean_data["user_id"] = int(clean_data["user_id"])
 
-        if clean_data.get("product_id"):
+        if "product_id" in clean_data:
             clean_data["product_id"] = int(clean_data["product_id"])
 
-        if clean_data.get("quantity"):
+        if "quantity" in clean_data:
             clean_data["quantity"] = int(clean_data["quantity"])
+            if clean_data["quantity"] <= 0:
+                raise ValueError("Quantity must be a positive integer")
 
         return cls(**{k : v for k,v in clean_data.items() if k in cls.__annotations__})
 
@@ -96,12 +98,19 @@ class Product(db.Model):
         if missing:
             raise ValueError(f"Missing required fields: {missing}")
 
-        if clean_data.get("name"):
+        if "name" in clean_data:
             clean_data["name"] = str(clean_data["name"])
-        if clean_data.get("price") is not None:
-            clean_data["price"] = Decimal(str(clean_data["price"]))
-        if clean_data.get("quantity"):
+        if "price" in clean_data:
+            try:
+                clean_data["price"] = Decimal(str(clean_data["price"]))
+            except InvalidOperation:
+                raise ValueError(f"Invalid price value: {clean_data['price']}")
+            if clean_data["price"] <= 0:
+                raise ValueError("Price must be a positive number")
+        if "quantity" in clean_data:
             clean_data["quantity"] = int(clean_data["quantity"])
+            if clean_data["quantity"] <= 0:
+                raise ValueError("Quantity must be a positive integer")
 
         return cls(**{k : v for k,v in clean_data.items() if k in cls.__annotations__})
 

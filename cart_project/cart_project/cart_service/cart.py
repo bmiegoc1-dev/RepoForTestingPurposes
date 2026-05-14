@@ -1,5 +1,5 @@
 from infrastructure.models import db, Product, CartItem, Users
-from exceptions.exceptions import UserNotFoundError, CartEmptyError, ProductNotFoundError
+from exceptions.exceptions import UserNotFoundError, ProductNotFoundError
 
 
 class CartManager:
@@ -8,9 +8,9 @@ class CartManager:
         # the parameter
 
         # Looking for a product name, if the user is trying to add the product that doesn't exist in the inventory,
-        # it will throw a response.
-        product_name = db.session.get(Product, item.product_id)
-        if not product_name:
+        # it will throw an error
+        product = db.session.get(Product, item.product_id)
+        if not product:
             raise ProductNotFoundError(f"Product{item.product_id} does not exist")
 
         #Searching for existing item in database
@@ -25,7 +25,7 @@ class CartManager:
         # Save changes
         db.session.commit()
 
-        return product_name.name  # functions return the product name.
+        return product.name
 
 
 
@@ -81,24 +81,20 @@ class CartManager:
         ).scalars().all()
 
 
-        if not items_of_user:   # If it's true and the code comes to this point, the user's cart must be empty
-            raise CartEmptyError(f"Cart is empty for user {user_id}")
+        username = user_object.username
 
-        username = user_object.username # Grabs the username for better layout at the end.
+        if not items_of_user:
+            return {"cart_owner": username, "items": [], "total_value": 0}
 
-
-        formatted_cart = [  # Formatting cart to dictionary.
-            i.to_dict() for i in items_of_user
-        ]
+        formatted_cart = [i.to_dict() for i in items_of_user]
 
         cart_total = 0
-
         for item in formatted_cart:
-            cart_total += item["total"] #Looks for a total for each item in our formatted cart and adds this value to our cart_total which is a full cart total value
+            cart_total += item["total"]
 
         return {
             "cart_owner": username,
-            "items": formatted_cart,  # Formatted list of dictionaries
+            "items": formatted_cart,
             "total_value": cart_total
         }
 

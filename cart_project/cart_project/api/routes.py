@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, Response
 from cart_service.cart import CartManager, StoreManager
 from infrastructure.models import db, Product, CartItem
-from exceptions.exceptions import UserNotFoundError, CartEmptyError, ProductNotFoundError
+from exceptions.exceptions import UserNotFoundError, ProductNotFoundError
 
 
 cart_bp = Blueprint('cart', __name__)
@@ -9,11 +9,11 @@ cart_bp = Blueprint('cart', __name__)
 @cart_bp.route('/add', methods=['POST'])
 def api_add_to_cart() ->tuple[Response, int]:  # adding item to the cart_item table
 
-    #1. Catch the incoming data, entered by user and save it to the variable.
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Request body must be valid JSON"}), 400
 
-    try:  # Using try to test the code for errors, like value error etc.
-        #Using DTO to handle the incoming data Extraction
+    try:
         new_cart_item = CartItem.from_dict(data)
     except ValueError:  # If any data is not required type and it produces ValueError, return this response to the user.
         return jsonify({
@@ -39,14 +39,14 @@ def api_add_to_cart() ->tuple[Response, int]:  # adding item to the cart_item ta
 
 def api_remove_from_cart() -> tuple[Response, int]:  # Removes item from the cart
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Request body must be valid JSON"}), 400
 
     try:
-        item_to_remove = CartItem.from_dict(data)  #Adding the method to clean incoming data. Variable holds the data entered by the user
-
+        item_to_remove = CartItem.from_dict(data)
     except ValueError:
-        return jsonify({
-            "error" : "invalid data types"}), 400
+        return jsonify({"error": "invalid data types"}), 400
 
     my_cart_manager = CartManager()
 
@@ -59,7 +59,7 @@ def api_remove_from_cart() -> tuple[Response, int]:  # Removes item from the car
         return jsonify({"error": "Product not found in cart"}), 404
 
     # 4. Send back the response to the user
-    return jsonify({"message": f"Successfully removed x{item_to_remove.quantity} {item_removing}! "}), 200
+    return jsonify({"message": f"Successfully removed x{item_to_remove.quantity} {item_removing}!"}), 200
 
 
 
@@ -83,10 +83,12 @@ def api_get_total(user_id : int) -> tuple[Response, int]:       #### Total cart 
 
 @cart_bp.route('/add_store', methods=['POST'])    # Adding an item to the catalog
 def api_store_item() -> tuple[Response, int]:
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Request body must be valid JSON"}), 400
 
     try:
-        new_store_item = Product.from_dict(data)    # using the from_dict method to clean incoming data
+        new_store_item = Product.from_dict(data)
     except ValueError:  # In case of invalid data entered while trying to add an item, produce ValueError
         return jsonify({
             "error": "bad request",
@@ -128,8 +130,6 @@ def api_get_cart(user_id : int)  -> tuple[Response, int]:
         user_cart = my_cart_manager.get_cart(user_id)
     except UserNotFoundError:
         return jsonify({"error": "User does not exist"}), 404
-    except CartEmptyError:
-        return jsonify({"error": "This user's cart is empty"}), 404
 
     return jsonify(user_cart), 200
 
