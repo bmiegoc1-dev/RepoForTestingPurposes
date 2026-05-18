@@ -119,6 +119,7 @@ class Product(db.Model):
     def to_dict(self) -> dict:
 
         product_dictionary = {
+            "id": self.id,
             "name": self.name,
             "price": float(self.price),
             "quantity": self.quantity

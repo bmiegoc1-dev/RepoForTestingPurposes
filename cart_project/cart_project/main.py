@@ -24,6 +24,11 @@ app.register_blueprint(cart_bp)
 app.register_blueprint(store_bp)
 
 
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
+
+
 # Server setup
 if __name__ == '__main__':
     with app.app_context():

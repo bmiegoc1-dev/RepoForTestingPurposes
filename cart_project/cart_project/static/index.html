@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 20px 40px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+            color: #1a1a2e;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #1a1a2e;
+        }
+
+        .btn {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover { opacity: 0.85; }
+        .btn-primary { background: #1a1a2e; color: white; }
+        .btn-danger  { background: #e74c3c; color: white; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .inline-form .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .product-item .name  { font-weight: 500; }
+        .product-item .meta  { color: #666; font-size: 0.8rem; }
+        .product-item .price { font-weight: 600; color: #1a1a2e; }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: #1a1a2e;
+            color: white;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .message {
+            padding: 10px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+
+        .message.success { background: #d4edda; color: #155724; }
+        .message.error   { background: #f8d7da; color: #721c24; }
+
+        .empty-state {
+            text-align: center;
+            color: #aaa;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Shopping Cart API</h1>
+    <p>Frontend for testing and interacting with the API</p>
+</header>
+
+<div class="container">
+
+    <!-- LEFT COLUMN: CATALOG -->
+    <div>
+        <div class="card">
+            <h2>Add Product to Catalog</h2>
+            <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" id="product-name" placeholder="e.g. Cola">
+            </div>
+            <div class="form-group">
+                <label>Price</label>
+                <input type="number" id="product-price" placeholder="e.g. 2.50" step="0.01" min="0.01">
+            </div>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" id="product-quantity" placeholder="e.g. 100" min="1">
+            </div>
+            <button class="btn btn-primary" onclick="addProduct()">Add to Catalog</button>
+            <div id="catalog-message"></div>
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
+            <h2>Product Catalog</h2>
+            <button class="btn btn-secondary" onclick="loadCatalog()" style="margin-bottom: 16px;">
+                Refresh Catalog
+            </button>
+            <div id="catalog-list" class="product-list">
+                <div class="empty-state">Click "Refresh Catalog" to load products</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: CART -->
+    <div>
+        <div class="card">
+            <h2>View Cart</h2>
+            <div class="inline-form">
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="number" id="cart-user-id" placeholder="e.g. 1" min="1">
+                </div>
+                <button class="btn btn-primary" onclick="loadCart()">Load Cart</button>
+            </div>
+            <div id="cart-contents" style="margin-top: 16px;">
+                <div class="empty-state">Enter a user ID to view their cart</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
+            <h2>Manage Cart Items</h2>
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="number" id="manage-user-id" placeholder="e.g. 1" min="1">
+            </div>
+            <div class="form-group">
+                <label>Product ID</label>
+                <input type="number" id="manage-product-id" placeholder="e.g. 1" min="1">
+            </div>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" id="manage-quantity" placeholder="e.g. 2" min="1">
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="addToCart()">Add to Cart</button>
+                <button class="btn btn-danger"  onclick="removeFromCart()">Remove from Cart</button>
+            </div>
+            <div id="cart-message"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function showMessage(elementId, text, type) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = `<div class="message ${type}">${text}</div>`;
+        setTimeout(() => { el.innerHTML = ''; }, 4000);
+    }
+
+    // ── Catalog ──────────────────────────────────────────────────────────────
+
+    async function loadCatalog() {
+        const res  = await fetch('/catalog');
+        const data = await res.json();
+        const list = document.getElementById('catalog-list');
+
+        if (!data.catalog || data.catalog.length === 0) {
+            list.innerHTML = '<div class="empty-state">No products in the catalog yet</div>';
+            return;
+        }
+
+        list.innerHTML = data.catalog.map(product => `
+            <div class="product-item">
+                <div>
+                    <div class="name">${product.name}</div>
+                    <div class="meta">ID: ${product.id} &nbsp;·&nbsp; Stock: ${product.quantity}</div>
+                </div>
+                <div class="price">£${product.price.toFixed(2)}</div>
+            </div>
+        `).join('');
+    }
+
+    async function addProduct() {
+        const name     = document.getElementById('product-name').value.trim();
+        const price    = parseFloat(document.getElementById('product-price').value);
+        const quantity = parseInt(document.getElementById('product-quantity').value);
+
+        if (!name || !price || !quantity) {
+            showMessage('catalog-message', 'Please fill in all fields.', 'error');
+            return;
+        }
+
+        const res  = await fetch('/add_store', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, price, quantity })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showMessage('catalog-message', data.message, 'success');
+            document.getElementById('product-name').value     = '';
+            document.getElementById('product-price').value    = '';
+            document.getElementById('product-quantity').value = '';
+            loadCatalog();
+        } else {
+            showMessage('catalog-message', data.error || 'Something went wrong.', 'error');
+        }
+    }
+
+    // ── Cart ─────────────────────────────────────────────────────────────────
+
+    async function loadCart() {
+        const userId    = document.getElementById('cart-user-id').value;
+        const container = document.getElementById('cart-contents');
+
+        if (!userId) {
+            container.innerHTML = '<div class="empty-state">Enter a user ID first</div>';
+            return;
+        }
+
+        const res  = await fetch(`/get_cart/${userId}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+            container.innerHTML = `<div class="message error">${data.error}</div>`;
+            return;
+        }
+
+        if (data.items.length === 0) {
+            container.innerHTML = `<div class="empty-state">${data.cart_owner}'s cart is empty</div>`;
+            return;
+        }
+
+        const itemsHtml = data.items.map(item => `
+            <div class="cart-item">
+                <div>
+                    <div style="font-weight:500">${item.product_name}</div>
+                    <div style="font-size:0.8rem;color:#666">
+                        x${item.quantity} &nbsp;·&nbsp; £${item.price.toFixed(2)} each
+                    </div>
+                </div>
+                <div style="font-weight:600">£${item.total.toFixed(2)}</div>
+            </div>
+        `).join('');
+
+        container.innerHTML = `
+            <div style="font-size:0.85rem;color:#666;margin-bottom:10px">
+                Cart owner: <strong>${data.cart_owner}</strong>
+            </div>
+            ${itemsHtml}
+            <div class="cart-total">
+                <span>Total</span>
+                <span>£${data.total_value.toFixed(2)}</span>
+            </div>
+        `;
+    }
+
+    async function addToCart() {
+        const user_id    = parseInt(document.getElementById('manage-user-id').value);
+        const product_id = parseInt(document.getElementById('manage-product-id').value);
+        const quantity   = parseInt(document.getElementById('manage-quantity').value);
+
+        if (!user_id || !product_id || !quantity) {
+            showMessage('cart-message', 'Please fill in all fields.', 'error');
+            return;
+        }
+
+        const res  = await fetch('/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id, product_id, quantity })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showMessage('cart-message', data.message, 'success');
+            const cartUserId = document.getElementById('cart-user-id').value;
+            if (parseInt(cartUserId) === user_id) loadCart();
+        } else {
+            showMessage('cart-message', data.error || 'Something went wrong.', 'error');
+        }
+    }
+
+    async function removeFromCart() {
+        const user_id    = parseInt(document.getElementById('manage-user-id').value);
+        const product_id = parseInt(document.getElementById('manage-product-id').value);
+        const quantity   = parseInt(document.getElementById('manage-quantity').value);
+
+        if (!user_id || !product_id || !quantity) {
+            showMessage('cart-message', 'Please fill in all fields.', 'error');
+            return;
+        }
+
+        const res  = await fetch('/remove', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id, product_id, quantity })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showMessage('cart-message', data.message, 'success');
+            const cartUserId = document.getElementById('cart-user-id').value;
+            if (parseInt(cartUserId) === user_id) loadCart();
+        } else {
+            showMessage('cart-message', data.error || 'Something went wrong.', 'error');
+        }
+    }
+</script>
+
+</body>
+</html>
