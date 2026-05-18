@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column
-from decimal import Decimal
-from sqlalchemy import String, Integer, Numeric, ForeignKey, DateTime
+from decimal import Decimal, InvalidOperation
+from sqlalchemy import String, Numeric, ForeignKey
 from typing import Any
 
 
@@ -39,18 +39,25 @@ class CartItem(db.Model):
 
 
 
+    REQUIRED_FIELDS = {"user_id", "product_id", "quantity"}   # Specifying fields that are required to pass to handle missing fields error
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> 'CartItem':
         clean_data = data.copy()
-        if clean_data.get("user_id"):  # using get here prevents from crashing when user won't send this data. KeyError
+
+        missing = cls.REQUIRED_FIELDS - clean_data.keys()  # Compares fields typed by the user with required.
+        if missing:  # If condition is true (any fields remained after subtraction) raise ValueError
+            raise ValueError(f"Missing required fields: {missing}")
+        if "user_id" in clean_data:
             clean_data["user_id"] = int(clean_data["user_id"])
 
-        if clean_data.get("product_id"):
+        if "product_id" in clean_data:
             clean_data["product_id"] = int(clean_data["product_id"])
 
-        if clean_data.get("quantity"):
+        if "quantity" in clean_data:
             clean_data["quantity"] = int(clean_data["quantity"])
+            if clean_data["quantity"] <= 0:
+                raise ValueError("Quantity must be a positive integer")
 
         return cls(**{k : v for k,v in clean_data.items() if k in cls.__annotations__})
 
@@ -58,9 +65,9 @@ class CartItem(db.Model):
 
         cart_dictionary = {   # What I need here is username, name of the product, quantity, and total value of the product
             "product_name" : self.product.name,
-            "price": self.product.price,
+            "price": float(self.product.price),
             "quantity" : self.quantity,
-            "total": self.product.price * self.quantity
+            "total": float(self.product.price * self.quantity)
 
         }
 
@@ -80,19 +87,30 @@ class Product(db.Model):
 
     quantity: Mapped[int] = mapped_column(nullable=False)
 
-
+    REQUIRED_FIELDS = {"name", "price", "quantity"}
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> 'Product':
 
         clean_data = data.copy()
 
-        if clean_data.get("name"):
+        missing = cls.REQUIRED_FIELDS - clean_data.keys()
+        if missing:
+            raise ValueError(f"Missing required fields: {missing}")
+
+        if "name" in clean_data:
             clean_data["name"] = str(clean_data["name"])
-        if clean_data.get("price"):
-            clean_data["price"] = int(clean_data["price"])
-        if clean_data.get("quantity"):
+        if "price" in clean_data:
+            try:
+                clean_data["price"] = Decimal(str(clean_data["price"]))
+            except InvalidOperation:
+                raise ValueError(f"Invalid price value: {clean_data['price']}")
+            if clean_data["price"] <= 0:
+                raise ValueError("Price must be a positive number")
+        if "quantity" in clean_data:
             clean_data["quantity"] = int(clean_data["quantity"])
+            if clean_data["quantity"] <= 0:
+                raise ValueError("Quantity must be a positive integer")
 
         return cls(**{k : v for k,v in clean_data.items() if k in cls.__annotations__})
 
@@ -102,7 +120,7 @@ class Product(db.Model):
 
         product_dictionary = {
             "name": self.name,
-            "price": self.price,
+            "price": float(self.price),
             "quantity": self.quantity
         }
 
