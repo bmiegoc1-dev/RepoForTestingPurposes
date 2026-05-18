@@ -4,7 +4,8 @@ from flask import Flask
 from sqlalchemy.pool import StaticPool
 
 from infrastructure.models import db as _db, Users, Product
-from api.routes import cart_bp
+from api.cart_routes import cart_bp
+from api.store_routes import store_bp
 
 
 @pytest.fixture
@@ -20,6 +21,7 @@ def app():
     })
     _db.init_app(test_app)
     test_app.register_blueprint(cart_bp)
+    test_app.register_blueprint(store_bp)
 
     with test_app.app_context():
         _db.create_all()
