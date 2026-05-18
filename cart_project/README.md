@@ -13,7 +13,7 @@ This API lets you:
 - View the cart contents and total price
 - Manage a product catalog — add products and browse what's available
 
-There is no frontend — everything is done by sending HTTP requests directly to the API (using a tool like Postman or curl).
+The project includes a simple browser-based frontend for interacting with the API visually, as well as full support for direct HTTP requests via tools like Postman or curl.
 
 ---
 
@@ -25,6 +25,7 @@ There is no frontend — everything is done by sending HTTP requests directly to
 | SQLAlchemy | talking to the database using Python objects instead of raw SQL |
 | PostgreSQL | storing users, products, and cart data |
 | Docker + Docker Compose | running the app and database together in isolated containers |
+| HTML / CSS / JavaScript | browser-based frontend for interacting with the API |
 | pytest | automated testing |
 | GitHub Actions | running tests automatically on every push |
 
@@ -54,6 +55,9 @@ cart_project/
     conftest.py                # shared test setup
     test_cart_routes.py        # tests for cart endpoints
     test_store_routes.py       # tests for store endpoints
+
+  static/
+    index.html                 # browser frontend
 ```
 
 Each layer has one job. Routes only handle HTTP. Managers only handle logic. Models only handle data. This makes the code easier to read and extend.
@@ -93,6 +97,7 @@ docker compose up --build
 ```
 
 The API is now running at `http://localhost:5000`.
+Open `http://localhost:5000` in your browser to use the frontend.
 
 To stop it:
 ```bash
@@ -131,6 +136,7 @@ python main.py
 ```
 
 The API is now running at `http://localhost:5000`.
+Open `http://localhost:5000` in your browser to use the frontend.
 
 ---
 
