@@ -24,4 +24,6 @@ app.register_blueprint(cart_bp)
 
 # Server setup
 if __name__ == '__main__':
-    app.run(debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
+    with app.app_context():
+        db.create_all()
+    app.run(host='0.0.0.0', debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
