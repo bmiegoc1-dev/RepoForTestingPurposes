@@ -1,6 +1,7 @@
 from flask import Flask
-from infrastructure.models import db  # imported  db classes and db toolkit
-from api.routes import cart_bp
+from infrastructure.models import db
+from api.cart_routes import cart_bp
+from api.store_routes import store_bp
 import os
 from dotenv import load_dotenv
 
@@ -20,6 +21,7 @@ db.init_app(app)
 
 # Initializing the endpoints from routes with blueprint
 app.register_blueprint(cart_bp)
+app.register_blueprint(store_bp)
 
 
 # Server setup
