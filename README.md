@@ -34,6 +34,18 @@ The project includes a simple browser-based frontend for interacting with the AP
 ## Project structure
 
 ```
+.github/workflows/ci.yml       # GitHub Actions CI
+tests/
+  conftest.py                  # shared test setup
+  test_cart_routes.py          # tests for cart endpoints
+  test_store_routes.py         # tests for store endpoints
+
+Dockerfile                     # container image definition
+docker-compose.yml             # runs app + database together
+requirements.txt               # Python dependencies
+pytest.ini                     # test configuration
+.env.example                   # template for environment variables
+
 cart_project/
   main.py                      # app entry point — creates and starts Flask
 
@@ -50,11 +62,6 @@ cart_project/
 
   exceptions/
     exceptions.py              # custom error types
-
-  tests/
-    conftest.py                # shared test setup
-    test_cart_routes.py        # tests for cart endpoints
-    test_store_routes.py       # tests for store endpoints
 
   static/
     index.html                 # browser frontend
@@ -82,7 +89,7 @@ Docker will set up both the database and the app for you automatically. No manua
 **1. Clone the repository**
 ```bash
 git clone https://github.com/bmiegoc1-dev/RepoForTestingPurposes.git
-cd RepoForTestingPurposes/cart_project
+cd RepoForTestingPurposes
 ```
 
 **2. Create your `.env` file**
@@ -113,7 +120,7 @@ You need PostgreSQL running on your machine with a database ready.
 **1. Clone the repository**
 ```bash
 git clone https://github.com/bmiegoc1-dev/RepoForTestingPurposes.git
-cd RepoForTestingPurposes/cart_project
+cd RepoForTestingPurposes
 ```
 
 **2. Create a virtual environment and install dependencies**
@@ -131,7 +138,7 @@ Edit `.env` and set `DATABASE_URL` to point to your local PostgreSQL instance.
 
 **4. Run the app**
 ```bash
-cd cart_project
+cd cart_project/cart_project
 python main.py
 ```
 
@@ -193,7 +200,6 @@ curl http://localhost:5000/total/1
 Tests use an in-memory SQLite database — no running database needed.
 
 ```bash
-cd cart_project
 pytest
 ```
 

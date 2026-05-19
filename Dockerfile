@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY cart_project/ ./cart_project/
+COPY cart_project/cart_project/ ./cart_project/
 
 WORKDIR /app/cart_project
 
